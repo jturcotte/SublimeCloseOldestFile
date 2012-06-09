@@ -1,0 +1,3 @@
+[
+    { "keys": ["super+alt+w"], "command": "close_oldest_file" }
+]
