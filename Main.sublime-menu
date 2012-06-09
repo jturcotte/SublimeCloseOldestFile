@@ -1,0 +1,10 @@
+[
+    {
+        "id": "file",
+        "children":
+        [
+            { "caption": "-", "id": "close" },
+            { "command": "close_oldest_file", "caption": "Close Oldest File" }
+        ]
+    }
+]
