@@ -10,11 +10,12 @@ class WindowData(object):
         self.candidateTime = None
         self.addUnknownViews()
 
-    def checkCandidate(self):
+    def checkLastSeenCandidate(self):
         if not self.candidate in self.stack:
             return
         # There is no way to tell when the user released ctrl in a ctrl+tab sequence.
-        # Promote a view only if it was activated for at least 1 second.
+        # Promote a view as last seen only if it was activated for at least 1 second
+        # to make sure we don't touch views that we just pass by.
         now = datetime.datetime.now()
         if self.candidate and now - self.candidateTime > datetime.timedelta(milliseconds = 1000):
             self.stack.remove(self.candidate)
@@ -32,7 +33,7 @@ class WindowData(object):
             # on_new isn't so reliable, check each time we find an unknown view instead.
             self.addUnknownViews()
 
-        self.checkCandidate()
+        self.checkLastSeenCandidate()
         self.candidate = view.id()
         self.candidateTime = datetime.datetime.now()
 
@@ -45,7 +46,7 @@ class WindowData(object):
     def closeOldest(self):
         if not self.stack:
             return
-        self.checkCandidate()
+        self.checkLastSeenCandidate()
         view = self.views[self.stack[0]]
         self.window.focus_view(view)
         self.window.run_command("close")
