@@ -1,16 +1,14 @@
 import sublime, sublime_plugin
 import datetime
 
-class ViewTracker(sublime_plugin.EventListener):
-    instance = None
-    def __init__(self):
+class WindowData(object):
+    def __init__(self, window):
+        self.window = window
         self.views = {}
         self.stack = []
         self.candidate = None
         self.candidateTime = None
-
-        # An instance is create automatically by Sublime, keep it.
-        ViewTracker.instance = self
+        self.addUnknownViews()
 
     def checkCandidate(self):
         if not self.candidate in self.stack:
@@ -24,11 +22,10 @@ class ViewTracker(sublime_plugin.EventListener):
             self.candidate = self.candidateTime = None
 
     def addUnknownViews(self):
-        for w in sublime.windows():
-            for v in w.views():
-                if v.id() not in self.views:
-                    self.views[v.id()] = v
-                    self.stack.append(v.id())
+        for v in self.window.views():
+            if v.id() not in self.views:
+                self.views[v.id()] = v
+                self.stack.append(v.id())
 
     def on_activated(self, view):
         if not view.id() in self.views:
@@ -46,12 +43,38 @@ class ViewTracker(sublime_plugin.EventListener):
             self.candidate = self.candidateTime = None
 
     def closeOldest(self):
+        if not self.stack:
+            return
         self.checkCandidate()
         view = self.views[self.stack[0]]
-        # FIXME: view.window() is None sometimes for some reason.
-        sublime.active_window().focus_view(view)
-        sublime.active_window().run_command("close")
+        self.window.focus_view(view)
+        self.window.run_command("close")
+
+class ViewTracker(sublime_plugin.EventListener):
+    instance = None
+    def __init__(self):
+        self.windows = {}
+        # An instance is created automatically by Sublime, keep it.
+        ViewTracker.instance = self
+
+    def getWindowData(self, window):
+        if window.id() in self.windows:
+            return self.windows[window.id()]
+        else:
+            data = WindowData(window)
+            self.windows[window.id()] = data
+            return data
+
+    def on_activated(self, view):
+        # Looks like view.window() is None here sometimes, probably a bug in Sublime.
+        # Use active_window() which should always match anyway.
+        data = self.getWindowData(sublime.active_window())
+        data.on_activated(view)
+
+    def on_close(self, view):
+        data = self.getWindowData(sublime.active_window())
+        data.on_close(view)
 
 class CloseOldestFileCommand(sublime_plugin.WindowCommand):
     def run(self):
-        ViewTracker.instance.closeOldest()
+        ViewTracker.instance.getWindowData(self.window).closeOldest()
