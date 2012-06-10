@@ -44,12 +44,21 @@ class WindowData(object):
             self.candidate = self.candidateTime = None
 
     def closeOldest(self):
-        if not self.stack:
-            return
         self.checkLastSeenCandidate()
-        view = self.views[self.stack[0]]
-        self.window.focus_view(view)
-        self.window.run_command("close")
+        # Search for a non-dirty view first.
+        viewToClose = None
+        for viewId in self.stack:
+            view = self.views[viewId]
+            if not view.is_dirty():
+                viewToClose = view
+                break
+        # If all remaining views are dirty, pick the oldest one.
+        if not viewToClose and self.stack:
+            viewToClose = self.views[self.stack[0]]
+
+        if viewToClose:
+            self.window.focus_view(viewToClose)
+            self.window.run_command("close")
 
 class ViewTracker(sublime_plugin.EventListener):
     instance = None
