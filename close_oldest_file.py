@@ -1,5 +1,6 @@
 import sublime, sublime_plugin
 import datetime
+import os.path
 
 class WindowData(object):
     def __init__(self, window):
@@ -57,8 +58,10 @@ class WindowData(object):
             viewToClose = self.views[self.stack[0]]
 
         if viewToClose:
+            viewDir,viewName = os.path.split(viewToClose.file_name())
             self.window.focus_view(viewToClose)
             self.window.run_command("close")
+            sublime.status_message("Closed [%s] (in %s)" % (viewName, viewDir))
 
 class ViewTracker(sublime_plugin.EventListener):
     instance = None
