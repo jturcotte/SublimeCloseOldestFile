@@ -59,9 +59,12 @@ class WindowData(object):
 
         if viewToClose:
             viewDir,viewName = os.path.split(viewToClose.file_name())
+            activeGroup = self.window.active_group()
             self.window.focus_view(viewToClose)
             self.window.run_command("close")
             sublime.status_message("Closed [%s] (in %s)" % (viewName, viewDir))
+            # The last focused view will be restored automatically when closed, but not the group.
+            self.window.focus_group(activeGroup)
 
 class ViewTracker(sublime_plugin.EventListener):
     instance = None
