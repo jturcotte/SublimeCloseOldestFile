@@ -84,8 +84,11 @@ class ViewTracker(sublime_plugin.EventListener):
     def on_activated(self, view):
         # Looks like view.window() is None here sometimes, probably a bug in Sublime.
         # Use active_window() which should always match anyway.
-        data = self.getWindowData(sublime.active_window())
-        data.on_activated(view)
+        window = sublime.active_window()
+        # active_window() can be None when the editor is still starting up.
+        if window:
+            data = self.getWindowData(window)
+            data.on_activated(view)
 
     def on_close(self, view):
         data = self.getWindowData(sublime.active_window())
