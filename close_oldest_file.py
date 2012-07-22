@@ -58,7 +58,7 @@ class WindowData(object):
             viewToClose = self.views[self.stack[0]]
 
         if viewToClose:
-            viewDir,viewName = os.path.split(viewToClose.file_name())
+            viewDir,viewName = os.path.split(viewToClose.file_name() if viewToClose.file_name() else "")
             activeGroup = self.window.active_group()
             self.window.focus_view(viewToClose)
             self.window.run_command("close")
